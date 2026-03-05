@@ -1006,7 +1006,6 @@ export const ParteFluxo = {
 
             p.vivo = false;
             console.log(`☠️ ${p.nome}: Morreu!`);
-            ESTADO.jogo.turnosMesa++;
             this.renderizarListaJogadores();
 
             if (!ESTADO.estatisticas[p.nome])
@@ -1096,6 +1095,7 @@ export const ParteFluxo = {
                 const emojiEstado = categoria === 'nervoso' ? '😅' : '😱';
                 this.atualizarStatus(emojiEstado, fraseStatus);
             } else {
+                const frases = CONFIGURACAO.perfis[p.perfil];
                 const fraseDepois =
                     frases.depoisSobreviver[
                     p.falas.depoisSobreviver++ %
@@ -1120,7 +1120,7 @@ export const ParteFluxo = {
                 true,
             );
 
-            this.finalizarVezNormal(indiceJogador);
+            await this.finalizarVezNormal(indiceJogador);
         }
     },
 
@@ -1158,7 +1158,7 @@ export const ParteFluxo = {
         ESTADO.jogo.vinganca.ativo = false;
         ESTADO.jogo.vinganca.indiceVingador = null;
 
-        this.finalizarVezNormal(indice);
+        await this.finalizarVezNormal(indice);
     },
 
     async manipularTiroVinganca(indiceAlvo) {
@@ -1321,8 +1321,7 @@ export const ParteFluxo = {
             const tEmoji = this.obterEmoji(alvo.perfil);
             this.atualizarStatus(tEmoji, tFrase);
 
-            await this._esperar(this.TEMPOS.LEITURA_FALA);
-            this.finalizarVezNormal(indiceVingador);
+            await this.finalizarVezNormal(indiceVingador);
         }
     },
 
@@ -1535,7 +1534,10 @@ export const ParteFluxo = {
     },
 
     definirProximaVez(indiceAtual) {
-        let proximo = (indiceAtual + 1) % ESTADO.jogo.jogadores.length;
+        let indiceReal = parseInt(indiceAtual, 10);
+        if (isNaN(indiceReal)) indiceReal = ESTADO.jogo.indiceVez;
+
+        let proximo = (indiceReal + 1) % ESTADO.jogo.jogadores.length;
         while (!ESTADO.jogo.jogadores[proximo].vivo)
             proximo = (proximo + 1) % ESTADO.jogo.jogadores.length;
         ESTADO.jogo.indiceVez = proximo;
